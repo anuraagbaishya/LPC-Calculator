@@ -341,6 +341,15 @@ void sine(unsigned char *buffer, unsigned char *s_operand)
 	_f_result = sin(_f_operand_1);
 	construct_string_floating(_f_result , s_operand);
 }
+
+void sine_inverse(unsigned char *buffer, unsigned char *s_operand)
+{
+	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
+	extract_numbers_floating(buffer , 1 , &_f_operand_1 , &_f_operand_2);
+	_f_result = asin(_f_operand_1);
+	construct_string_floating(_f_result, s_operand);
+}
+
 void cosine(unsigned char *buffer, unsigned char *s_operand)
 {
 	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
@@ -348,6 +357,15 @@ void cosine(unsigned char *buffer, unsigned char *s_operand)
 	_f_result = cos(_f_operand_1);
 	construct_string_floating(_f_result , s_operand);
 }
+
+void cosine_inverse(unsigned char *buffer , unsigned char *s_operand)
+{
+	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
+	extract_numbers_floating(buffer , 2 , &_f_operand_1 , &_f_operand_2);
+	_f_result = acos(_f_operand_1);
+	construct_string_floating(_f_result , s_operand);	
+}
+
 void tangent(unsigned char *buffer, unsigned char *s_operand)
 {
 	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
@@ -355,12 +373,44 @@ void tangent(unsigned char *buffer, unsigned char *s_operand)
 	_f_result = tan(_f_operand_1);
 	construct_string_floating(_f_result , s_operand);
 }
-void nlog(unsigned char *buffer, unsigned char *s_operand)
+
+void tangent_inverse(unsigned char *buffer, unsigned char *s_operand)
 {
 	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
 	extract_numbers_floating(buffer , 2 , &_f_operand_1 , &_f_operand_2);
+	_f_result = atan(_f_operand_1);
+	construct_string_floating(_f_result , s_operand);	
+}
+
+void nlog(unsigned char *buffer, unsigned char *s_operand)
+{
+	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
+	extract_numbers_floating(buffer , 1 , &_f_operand_1 , &_f_operand_2);
 	_f_result = log(_f_operand_1);
 	construct_string_floating(_f_result , s_operand);
+}
+
+void b_10_log(unsigned char *buffer , unsigned char *s_operand)
+{
+	float _f_operand_1 = 0.00 , _f_operand_2 = 0.00 , _f_result;
+	extract_numbers_floating(buffer , 1 , &_f_operand_1 , &_f_operand_2);
+	_f_result = log10(_f_operand_1);
+	construct_string_floating(_f_result , s_operand);
+}
+
+void natural_exponent(unsigned char *buffer , unsigned char *s_operand)
+{
+	float _f_operand_1 = 0.00, _f_operand_2 = 0.00 , _f_result;
+	extract_numbers_floating(buffer , 1 , &_f_operand_1 , &_f_operand_2);
+	_f_result = exp(_f_operand_1);
+	construct_string_floating(_f_result , s_operand);
+}
+
+void random_number(unsigned char *buffer, unsigned char *s_operand)
+{
+	unsigned int result;
+	result = rand();
+	construct_string(result , s_operand);	
 }
 
 void hex_to_dec(unsigned char *buffer , unsigned char *s_operand)
@@ -414,6 +464,7 @@ void bin_to_dec(unsigned char *buffer , unsigned char *s_operand)
 	construct_string(result , s_operand);
 }
 
+
 void evaluate(unsigned char *buffer , unsigned char *s_operand)
 {
 	unsigned char operator ;
@@ -431,6 +482,12 @@ void evaluate(unsigned char *buffer , unsigned char *s_operand)
 		case 'c' : {cosine(buffer, s_operand); modify_float_expr = 0x01; break;}
 		case 't' : {tangent(buffer, s_operand); modify_float_expr = 0x01; break; }
 		case 'l' : {nlog(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case 'g' : {b_10_log(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case 'e' : {natural_exponent(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case 'S' : {sine_inverse(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case '#' : {cosine_inverse(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case 'T' : {tangent_inverse(buffer, s_operand); modify_float_expr = 0x01; break;}
+		case 'R' : {random_number(buffer, s_operand); break;}
 		case 'h' : {hex_to_dec(buffer, s_operand);break;}
 		case 'o' : {oct_to_dec(buffer, s_operand);break;}
 		case 'b' : {bin_to_dec(buffer, s_operand);break;}
