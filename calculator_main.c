@@ -1,4 +1,5 @@
 #include "LPC17xx.h"
+#include "STRING_MANIPULATE.h"
 
 //------LCD CONTROL--------
 #define RS_CTRL  0x08000000  
@@ -19,16 +20,21 @@ void clear_ports(void)			;
 void lcd_puts(unsigned char *)	;
 //-------------------------------
 
-//------------GLOBAL VAR-----------------
-unsigned char col,row,flag				;
-unsigned long int i,var1,temp,temp3,k	; 
-unsigned long int temp1=0, temp2=0 		;
-unsigned char tempz[16];
- //--------------------------------------
+//-------------------GLOBAL DFN----------------------
+unsigned char col, row, flag, sw					;
+unsigned long int i, var1, temp, temp3, k			; 
+unsigned long int temp1=0, temp2=0 					;
+unsigned char tempz[16], tempx[16], blanks[16]		;
+unsigned int mode_set = 0							;	
+//---------------------------------------------------
  
 
-// ASCII STRING
-unsigned char seven_code[4][4]={{0x30,0x31,0x32,0x33}, {0x34,0x35,0x36,0x37}, {0x38,0x39,0x41,0x42}, {0x43,0x44,0x45,0x46}};
+//----------------------------------------------------ASCII STRINGS----------------------------------------------------------
+unsigned char seven_code[4][4]={{0x31,0x32,0x33,0x2B}, {0x34,0x35,0x36,0x2D}, {0x37,0x38,0x39,0x2A} , {0x4D,0x30,0x3D,0x2F}};
+unsigned char modify_btn[4][4]={{0x41,0x42,0x43,0x25}, {0x44,0x45,0x46,0x5E}, {0x68,0x6f,0x62,0x2E} , {0x4D,0x73,0x63,0x74}};
+unsigned char modify_btn2[4][4]={{0x6C,0x21,0x30,0x30},{0x30,0x30,0x30,0x30}, {0x30,0x30,0x30,0x30},  {0x30,0x30,0x30,0x30}};
+//---------------------------------------------------------------------------------------------------------------------------
+
  
 int main(void)
 {
@@ -40,6 +46,8 @@ int main(void)
 	temp1 = 0x80;			
 	lcd_com();
 	delay_lcd(800);
+	for(i = 0; i < 16; i++)
+		blanks[i] = ' ';
 	while(1)
 	{
 		for(row = 0; row<4; row++)
@@ -55,15 +63,84 @@ int main(void)
 			LPC_GPIO2->FIOPIN = temp;
 			flag= 0;
 			scan();
-			if(flag == 1)
+			if(flag == 1 && mode_set == 0x02)
 			{
-				tempz[k++]=seven_code[row][col];
+				tempz[k++] = modify_btn2[row][col];
 				lcd_puts(tempz);
-				for(i=0;i<50000;i++);
+				for(i = 0 ; i < 50000 ; i++);
 				clear_ports();
-				temp1 = 0x80;			
+				temp1 = 0x80;
 				lcd_com();
 				delay_lcd(800);
+				mode_set = 0x00;
+				break;				
+			}
+			if(flag == 1 && mode_set == 0X01)
+			{
+				if(modify_btn[row][col] == 0x4D)
+				{
+					for(i = 0; i < 5000; i++);
+					mode_set = 0x02;
+					break;
+				}
+				tempz[k++] = modify_btn[row][col];
+				lcd_puts(tempz);
+				for(i = 0 ; i < 50000 ; i++);
+				clear_ports();
+				temp1 = 0x80;
+				lcd_com();
+				delay_lcd(800);
+				mode_set = 0x00;
+				break;
+			}
+			if(flag == 1 && mode_set == 0x00)
+			{
+				if(seven_code[row][col] == 0x4D)
+				{
+					for(i = 0 ; i < 50000 ;i++);
+					mode_set = 0x01;
+					break;
+				}
+				tempz[k++]=seven_code[row][col];
+				if(seven_code[row][col] == '=')
+				{
+					sw = 1;
+					temp1 = 0xC0;
+					lcd_com();
+					delay_lcd(800);
+					evaluate(tempz , tempx);
+					i = 0;
+					while(tempx[i] != '\0')
+					{
+						tempz[i] = tempx[i];
+						i++;
+					}
+					k = i;
+					while(i<16)
+					{	
+						tempz[i] = '\0';
+						i++;
+					}
+					
+				}
+				else{
+					temp1 = 0x80;
+					lcd_com();
+					delay_lcd(800);
+				}
+				lcd_puts(tempz);
+				if(sw == 1){
+					temp1 = 0x80;
+					lcd_com();
+					delay_lcd(800);
+					lcd_puts(blanks);
+					temp1 = 0x80;
+					lcd_com();
+					delay_lcd(800);
+					sw = 0;
+				}	
+				for(i=0;i<50000;i++);
+				clear_ports();
 				break;	 
 			}
 		}
@@ -75,7 +152,7 @@ void lcd_init()
 {
 	
 	LPC_PINCON->PINSEL1 &= 0xFC003FFF;
-    LPC_GPIO0->FIODIR |= DT_CTRL;	
+ 	LPC_GPIO0->FIODIR |= DT_CTRL;	
 	LPC_GPIO0->FIODIR |= RS_CTRL;	
 	LPC_GPIO0->FIODIR |= EN_CTRL;	
     clear_ports();
